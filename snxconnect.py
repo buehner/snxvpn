@@ -5,13 +5,15 @@ import os
 import os.path
 import sys
 import socket
+import gzip
+import tarfile
 try :
-    from urllib2 import build_opener, HTTPCookieProcessor, Request
+    from urllib2 import build_opener, HTTPCookieProcessor, Request, urlopen
     from urllib  import urlencode
     from httplib import IncompleteRead
     rsatype = long
 except ImportError :
-    from urllib.request import build_opener, HTTPCookieProcessor, Request
+    from urllib.request import build_opener, HTTPCookieProcessor, Request, urlopen
     from urllib.parse   import urlencode
     from http.client    import IncompleteRead
     rsatype = int
@@ -195,9 +197,10 @@ class HTML_Requester (object) :
 
         # enc = PW_Encode (modulus = self.modulus, exponent = self.exponent)
         # enc_pw = enc.encrypt (self.args.password)
+        self.install_geckodriver()
         options = Options()
         options.headless = True
-        driver = webdriver.Firefox(options=options)
+        driver = webdriver.Firefox(options=options, executable_path=self.driverpath)
         portal_url = "%s://%s" % (self.args.protocol, self.args.host)
         driver.get(portal_url)
         enc_pw = driver.execute_script('return window.cpRSAobj.encrypt("%s")' % self.args.password)
@@ -250,6 +253,25 @@ class HTML_Requester (object) :
             self.nextfile = '/'.join (dir + fn)
             # We might try to remove '..' elements in the future
     # end def next_file
+
+    # install geckodriver for headless firefox
+    def install_geckodriver (self) :
+        home = os.path.expanduser("~")
+        driverfolder = home + os.path.sep + ".snx-geckodriver" + os.path.sep
+        drivername = "geckodriver"
+        self.driverpath = driverfolder + drivername
+        if not os.path.exists(driverfolder):
+            os.makedirs(driverfolder)
+        if not os.path.exists(self.driverpath):
+            baseURL = "https://github.com/mozilla/geckodriver/releases/download/v0.26.0/"
+            filename = "geckodriver-v0.26.0-linux64.tar.gz"
+            tarfilepath = driverfolder + filename[:-3]
+            #response = urllib.request.urlopen(baseURL + filename)
+            response = urlopen(baseURL + filename)
+            with open(tarfilepath, 'wb') as outfile:
+                outfile.write(gzip.decompress(response.read()))
+            tf = tarfile.open(tarfilepath)
+            tf.extractall(path=driverfolder)
 
     def open (self, filepart = None, data = None, do_soup = True) :
         filepart = filepart or self.nextfile
