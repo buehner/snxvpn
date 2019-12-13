@@ -44,7 +44,7 @@ setup \
     , platforms        = 'Linux'
     , url              = "https://github.com/schlatterbeck/snxvpn"
     , scripts          = ['snxconnect']
-    , install_requires = [ 'bs4', 'pycrypto', 'lxml', 'selenium' ]
+    , install_requires = [ 'bs4', 'pycrypto', 'lxml', 'selenium', 'setuptools', 'wheel', 'cryptography' ]
     , classifiers      = \
         [ 'Development Status :: 3 - Alpha'
         , 'License :: OSI Approved :: ' + license
