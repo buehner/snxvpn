@@ -27,6 +27,8 @@ from Crypto.PublicKey  import RSA
 from struct            import pack, unpack
 from subprocess        import Popen, PIPE
 from snxvpnversion     import VERSION
+from selenium          import webdriver
+from selenium.webdriver.firefox.options import Options
 
 """ Todo:
     - timeout can be retrieved at /sslvpn/Portal/LoggedIn
@@ -191,9 +193,18 @@ class HTML_Requester (object) :
                 break
         self.debug (self.nextfile)
 
-        enc = PW_Encode (modulus = self.modulus, exponent = self.exponent)
+        # enc = PW_Encode (modulus = self.modulus, exponent = self.exponent)
+        # enc_pw = enc.encrypt (self.args.password)
+        options = Options()
+        options.headless = True
+        driver = webdriver.Firefox(options=options)
+        portal_url = "%s://%s" % (self.args.protocol, self.args.host)
+        driver.get(portal_url)
+        enc_pw = driver.execute_script('return window.cpRSAobj.encrypt("%s")' % self.args.password)
+        driver.close()
+
         d = dict \
-            ( password      = enc.encrypt (self.args.password)
+            ( password      = enc_pw
             , userName      = self.args.username
             , selectedRealm = self.args.realm
             , loginType     = self.args.login_type
